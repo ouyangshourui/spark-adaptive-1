@@ -113,13 +113,13 @@ object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
     val childDataSizeMetric = p.child.metrics.get("dataSize")
     val childDataSize = if (childDataSizeMetric.isDefined &&
       SQLConf.get.adaptiveBroadcastJoinUseMetric) {
-      BigInt(childDataSizeMetric.get.value)
+      childDataSizeMetric.get.value
     } else {
-      BigInt(0)
+      0
     }
 
     val statistics = if (p.mapOutputStatistics != null) {
-      val sizeInBytes = p.mapOutputStatistics.bytesByPartitionId.sum
+      val sizeInBytes = p.mapOutputStatistics.bytesByPartitionId.sum.max(childDataSize)
       val bytesByPartitionId = p.mapOutputStatistics.bytesByPartitionId
       if (p.mapOutputStatistics.recordsByPartitionId.nonEmpty) {
         val record = p.mapOutputStatistics.recordsByPartitionId.sum
@@ -134,12 +134,7 @@ object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
       visitUnaryExecNode(p)
     }
 
-    if (statistics.sizeInBytes > childDataSize) {
-      print(s"Using data size ${statistics.sizeInBytes} for sizeInBytes\n")
-      statistics
-    } else {
-      print(s"Using data size $childDataSize for sizeInBytes\n")
-      Statistics(sizeInBytes = childDataSize, bytesByPartitionId = statistics.bytesByPartitionId)
-    }
+    print(s"Using data size ${statistics.sizeInBytes} for sizeInBytes\n")
+    statistics
   }
 }
