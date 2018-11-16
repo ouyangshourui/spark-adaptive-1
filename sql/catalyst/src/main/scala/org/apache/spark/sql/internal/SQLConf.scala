@@ -238,12 +238,6 @@ object SQLConf {
     .longConf
     .createOptional
 
-  val ADAPTIVE_BROADCASTJOIN_USEMETRIC = buildConf("spark.sql.adaptive.broadcastjoin.usemetric")
-    .doc("When true, consider SQL metrics when determining whether to adapt a sort/merge join " +
-      "to a broadcast join.")
-    .booleanConf
-    .createWithDefault(false)
-
   val ADAPTIVE_EXECUTION_ALLOW_ADDITIONAL_SHUFFLE =
     buildConf("spark.sql.adaptive.allowAdditionalShuffle")
       .doc("When true, additional shuffles are allowed during plan optimizations in adaptive " +
@@ -1366,9 +1360,6 @@ class SQLConf extends Serializable with Logging {
 
   def adaptiveBroadcastJoinThreshold: Long =
     getConf(ADAPTIVE_BROADCASTJOIN_THRESHOLD).getOrElse(autoBroadcastJoinThreshold)
-
-  def adaptiveBroadcastJoinUseMetric: Boolean =
-    getConf(ADAPTIVE_BROADCASTJOIN_USEMETRIC)
 
   def adaptiveAllowAdditionShuffle: Boolean = getConf(ADAPTIVE_EXECUTION_ALLOW_ADDITIONAL_SHUFFLE)
 

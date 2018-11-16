@@ -23,7 +23,6 @@ import org.apache.spark.sql.execution.adaptive.ShuffleQueryStage
 import org.apache.spark.sql.execution.aggregate._
 import org.apache.spark.sql.execution.exchange.ShuffleExchangeExec
 import org.apache.spark.sql.execution.joins.{HashJoin, SortMergeJoinExec}
-import org.apache.spark.sql.internal.SQLConf
 
 object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
 
@@ -110,16 +109,12 @@ object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
   }
 
   override def visitShuffleQueryStage(p: ShuffleQueryStage): Statistics = {
-    val childDataSizeMetric = p.child.metrics.get("dataSize")
-    val childDataSize = if (childDataSizeMetric.isDefined &&
-      SQLConf.get.adaptiveBroadcastJoinUseMetric) {
-      childDataSizeMetric.get.value
-    } else {
-      0
-    }
-
-    val statistics = if (p.mapOutputStatistics != null) {
+    if (p.mapOutputStatistics != null) {
+      val childDataSize = p.child.metrics.get("dataSize").map(_.value).getOrElse(0L)
       val sizeInBytes = p.mapOutputStatistics.bytesByPartitionId.sum.max(childDataSize)
+      if (sizeInBytes == childDataSize) {
+        print(s"Using child data size $childDataSize\n")
+      }
       val bytesByPartitionId = p.mapOutputStatistics.bytesByPartitionId
       if (p.mapOutputStatistics.recordsByPartitionId.nonEmpty) {
         val record = p.mapOutputStatistics.recordsByPartitionId.sum
@@ -133,8 +128,5 @@ object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
     } else {
       visitUnaryExecNode(p)
     }
-
-    print(s"Using data size ${statistics.sizeInBytes} for sizeInBytes\n")
-    statistics
   }
 }
