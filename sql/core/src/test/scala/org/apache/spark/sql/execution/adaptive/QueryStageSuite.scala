@@ -55,7 +55,7 @@ class QueryStageSuite extends SparkFunSuite with BeforeAndAfterAll {
       .config(config.SHUFFLE_STATISTICS_VERBOSE.key, "true")
       .config(SQLConf.ADAPTIVE_EXECUTION_ENABLED.key, "true")
       .config(SQLConf.AUTO_BROADCASTJOIN_THRESHOLD.key, "-1")
-      .config(SQLConf.ADAPTIVE_BROADCASTJOIN_THRESHOLD.key, "12000")
+      .config(SQLConf.ADAPTIVE_BROADCASTJOIN_THRESHOLD.key, "16000")
       .getOrCreate()
     spark
   }
