@@ -112,9 +112,6 @@ object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
     if (p.mapOutputStatistics != null) {
       val childDataSize = p.child.metrics.get("dataSize").map(_.value).getOrElse(0L)
       val sizeInBytes = p.mapOutputStatistics.bytesByPartitionId.sum.max(childDataSize)
-      if (sizeInBytes == childDataSize) {
-        print(s"Using child data size $childDataSize\n")
-      }
       val bytesByPartitionId = p.mapOutputStatistics.bytesByPartitionId
       if (p.mapOutputStatistics.recordsByPartitionId.nonEmpty) {
         val record = p.mapOutputStatistics.recordsByPartitionId.sum
