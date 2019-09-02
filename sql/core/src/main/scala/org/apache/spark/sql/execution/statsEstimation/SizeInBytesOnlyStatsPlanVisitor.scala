@@ -110,7 +110,8 @@ object SizeInBytesOnlyStatsPlanVisitor extends SparkPlanVisitor[Statistics] {
 
   override def visitShuffleQueryStage(p: ShuffleQueryStage): Statistics = {
     if (p.mapOutputStatistics != null) {
-      val sizeInBytes = p.mapOutputStatistics.bytesByPartitionId.sum
+      val childDataSize = p.child.metrics.get("dataSize").map(_.value).getOrElse(0L)
+      val sizeInBytes = p.mapOutputStatistics.bytesByPartitionId.sum.max(childDataSize)
       val bytesByPartitionId = p.mapOutputStatistics.bytesByPartitionId
       if (p.mapOutputStatistics.recordsByPartitionId.nonEmpty) {
         val record = p.mapOutputStatistics.recordsByPartitionId.sum
